@@ -6,27 +6,37 @@ import seaborn as sns
 # Lendo o arquivo
 dados = pd.read_excel("acidentes.xlsx")
 
-# Separando as informações por ';'
-dados = dados.iloc[:, 0].str.split(';', expand=True)
+# Dividindo a primeira coluna em um novo dataframe
+novos_dados = dados.iloc[:, 0].str.split(';', expand=True)
 
-# Selecionando a primeira coluna
-acidentes = dados.iloc[:, 0]
+# Renomeando as colunas do novo dataframe
+novos_dados.columns = ['causa', 'data', 'coluna3', 'coluna4', 'coluna5', 'coluna6']
 
-# Contando a frequência de cada tipo de acidente
-frequencia_acidentes = acidentes.value_counts()
+# Convertendo a coluna de datas para datetime
+novos_dados['data'] = pd.to_datetime(novos_dados['data'], errors='coerce')
 
-# Filtrando os acidentes com frequência maior que 1000
-frequencia_acidentes_filtrada = frequencia_acidentes[frequencia_acidentes > 1000]
+# Concatenando o novo dataframe com o dataframe original
+dados = pd.concat([novos_dados, dados.iloc[:, 1:]], axis=1)
+
+# Filtrando os dados do mês de outubro
+dados_outubro = dados[dados['data'].dt.month == 10]
+
+# Acessando a coluna de causas
+causas = dados_outubro['causa']
+
+# Contando a frequência de cada causa
+frequencia_causas = causas.value_counts()
+
+# Filtrando as causas que ocorrem mais de 1000 vezes
+frequencia_causas_filtrada = frequencia_causas[frequencia_causas > 1000]
 
 # Plotando o gráfico
-fig = plt.figure(figsize=(12,6))
-sns.barplot(x=frequencia_acidentes_filtrada.index, y=frequencia_acidentes_filtrada.values)
-plt.title('Acidentes Mais Ocorridos')
-plt.xlabel('Tipo de Acidente')
-plt.ylabel('Frequência')
-plt.xticks(rotation=90)
+fig, ax = plt.subplots(figsize=(12,6))
 
-# Ajustando o espaço no fundo do gráfico
-plt.subplots_adjust(bottom=0.25)
+sns.barplot(x=frequencia_causas_filtrada.index, y=frequencia_causas_filtrada.values, ax=ax)
+ax.set_title('Causas de Acidentes Mais Ocorridas em Outubro')
+ax.set_xlabel('Causa')
+ax.set_ylabel('Frequência')
+ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
 plt.show()
